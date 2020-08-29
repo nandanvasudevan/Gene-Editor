@@ -27,7 +27,7 @@
  * @param vAnnotatedVector Vector containing data for changes to be made
  * @param sPath Path to file containing changes
  */
-void ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string);
+bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string);
 
 /**
  * @brief Modify nucleotides in a gene based on passed data

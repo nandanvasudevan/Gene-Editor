@@ -14,7 +14,7 @@
 #include <streambuf>
 #include "geneEditor.hpp"
 
-void ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string sPath)
+bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string sPath)
 {
     std::ifstream fAnnotationFile;
     fAnnotationFile.open(sPath);
@@ -75,8 +75,12 @@ void ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &
     else
     {
         std::cerr << "File not open\n";
+        fAnnotationFile.close();
+        return false;
     }
+
     fAnnotationFile.close();
+    return true;
 }
 
 void ModifyGene(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string sInputPath, std::string sOutputPath)

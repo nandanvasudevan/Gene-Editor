@@ -8,10 +8,28 @@ int main()
     std::ifstream fAnnotationFile;
     // const char *originalDataFile = "./resources/cq1b/original.txt";
     // fAnnotationFile.open(originalDataFile);
-    std::string sAnnotationPath = "./resources/c1qb/changeList.txt";
-    std::string sGenePath = "./resources/c1qb/original.txt";
-    std::string sOutputPath = "./resources/c1qb/modified.txt";
 
-    ImportChanges(vAnnotated, sAnnotationPath);
-    ModifyGene(vAnnotated, sGenePath, sOutputPath);
+    std::string sGeneName = "";
+
+    while (true)
+    {
+        std::cout << "\nEnter name of gene (q to quit): ";
+        std::cin >> sGeneName;
+
+        if (sGeneName == "q")
+        {
+            break;
+        }
+
+        std::string sAnnotationPath = "./resources/" + sGeneName + "/changeList.txt";
+        std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
+        std::string sOutputPath = "./resources/" + sGeneName + "/modified.txt";
+
+        // std::clog << sAnnotationPath;
+
+        if (ImportChanges(vAnnotated, sAnnotationPath))
+        {
+            ModifyGene(vAnnotated, sGenePath, sOutputPath);
+        }
+    }
 }
