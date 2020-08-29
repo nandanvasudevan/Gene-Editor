@@ -26,6 +26,7 @@
  * 
  * @param vAnnotatedVector Vector containing data for changes to be made
  * @param sPath Path to file containing changes
+ * @return true if import is successful, else false
  */
 bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string);
 
