@@ -14,7 +14,30 @@
 #include <streambuf>
 #include "geneEditor.hpp"
 
-bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string sPath)
+bool ImportPopulationData(vPopulationDetail &vPopData, vChangeDetail &vChangeData, std::string sPopFilePath)
+{
+    std::ifstream fPopFile;
+    fPopFile.open(sPopFilePath);
+
+    if (fPopFile.is_open())
+    {
+        std::string sRawFile;
+
+        { // Copy entire file to string and close the file
+            fPopFile.seekg(0, std::ios::end);
+            sRawFile.reserve(fPopFile.tellg());
+            fPopFile.seekg(0, std::ios::beg);
+
+            sRawFile.assign((std::istreambuf_iterator<char>(fPopFile)), std::istreambuf_iterator<char>());
+
+            fPopFile.close();
+        }
+    }
+
+    return true;
+}
+
+bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
 {
     std::ifstream fAnnotationFile;
     fAnnotationFile.open(sPath);
@@ -25,8 +48,8 @@ bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &
         std::string rawAnnotation;
         std::pair<char, char> pairNucleotide;
         std::pair<unsigned int, std::pair<char, char>> pairChangeInfo;
-        unsigned int uiElementindex;
-        char cOriginalNucleotide;
+        size_t uiElementindex;
+        char cReferenceAllele;
         char cReplacementNucleotide;
 
         while (getline(fAnnotationFile, rawAnnotation))
@@ -37,26 +60,31 @@ bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &
             while (getline(wordString, word, '\t'))
             {
                 static int parameterID = 0;
+                static sChangeDetail *detail;
 
                 switch (parameterID)
                 {
                 case 0:
+                    detail = new sChangeDetail();
                     uiElementindex = std::stoi(word);
-                    pairChangeInfo.first = uiElementindex;
+                    detail->szLocation = uiElementindex;
+
                     parameterID = 1;
                     break;
                 case 1:
-                    cOriginalNucleotide = word.c_str()[0];
-                    pairNucleotide.first = cOriginalNucleotide;
+                    cReferenceAllele = word.c_str()[0];
+                    detail->cReferenceAllele = cReferenceAllele;
+
                     parameterID = 2;
                     break;
                 case 2:
                     cReplacementNucleotide = word.c_str()[0];
-                    pairNucleotide.second = cReplacementNucleotide;
+                    detail->cAlternateAllele = cReplacementNucleotide;
 
-                    pairChangeInfo.second = pairNucleotide;
-                    vAnnotatedVector.push_back(pairChangeInfo);
+                    vAnnotatedVector.emplace_back(detail);
                     parameterID = 0;
+
+                    delete detail;
                     break;
                 default:
                     std::clog << "Default triggered: " << word << '\n';
@@ -67,9 +95,9 @@ bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &
 
         // for (const auto &iterator : vAnnotatedVector)
         // {
-        //     std::clog << "Index: " << iterator.first << '\t';
-        //     std::clog << "Existing nucleotide: " << iterator.second.first << '\t';
-        //     std::clog << "Replacement nucleotide: " << iterator.second.second << '\n';
+        //     std::clog << "Index: " << iterator.szLocation << '\t';
+        //     std::clog << "Existing nucleotide: " << iterator.cReferenceAllele << '\t';
+        //     std::clog << "Replacement nucleotide: " << iterator.cAlternateAllele << '\n';
         // }
     }
     else
@@ -83,7 +111,7 @@ bool ImportChanges(std::vector<std::pair<unsigned int, std::pair<char, char>>> &
     return true;
 }
 
-void ModifyGene(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAnnotatedVector, std::string sInputPath, std::string sOutputPath)
+void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath)
 {
     std::ifstream fAnnotationFile;
     std::ofstream fModifiedFile;
@@ -92,32 +120,34 @@ void ModifyGene(std::vector<std::pair<unsigned int, std::pair<char, char>>> &vAn
     fAnnotationFile.open(sInputPath);
     fModifiedFile.open(sOutputPath, std::ios::out | std::ios::app);
 
-    fAnnotationFile.seekg(0, std::ios::end);
-    sGene.reserve(fAnnotationFile.tellg());
-    fAnnotationFile.seekg(0, std::ios::beg);
+    { // Copy entire file to string and close the file
+        fAnnotationFile.seekg(0, std::ios::end);
+        sGene.reserve(fAnnotationFile.tellg());
+        fAnnotationFile.seekg(0, std::ios::beg);
 
-    sGene.assign((std::istreambuf_iterator<char>(fAnnotationFile)), std::istreambuf_iterator<char>());
+        sGene.assign((std::istreambuf_iterator<char>(fAnnotationFile)), std::istreambuf_iterator<char>());
+    }
 
-    std::vector<std::pair<unsigned int, std::pair<char, char>>>::iterator annotationIterator = vAnnotatedVector.begin();
+    vChangeDetail::iterator annotationIterator = vAnnotatedVector.begin();
 
     for (char &cNucleotide : sGene)
     {
         static size_t index = 1;
 
-        if (annotationIterator->first == index)
+        if (annotationIterator->szLocation == index)
         {
-            if (cNucleotide == annotationIterator->second.first)
+            if (cNucleotide == annotationIterator->cReferenceAllele)
             {
-                std::clog << "Index: " << annotationIterator->first << '\t';
+                std::clog << "Index: " << annotationIterator->cReferenceAllele << '\t';
                 std::clog << "Existing nucleotide: " << cNucleotide << " : " << sGene.at(index - 1) << '\t';
 
-                std::exchange(cNucleotide, annotationIterator->second.second);
+                std::exchange(cNucleotide, annotationIterator->cAlternateAllele);
 
-                std::clog << "Replacement nucleotide: " << annotationIterator->second.second << " : " << sGene.at(index - 1) << '\n';
+                std::clog << "Replacement nucleotide: " << annotationIterator->cAlternateAllele << " : " << sGene.at(index - 1) << '\n';
             }
             else
             {
-                std::clog << "Index: " << annotationIterator->first << '\t';
+                std::clog << "Index: " << annotationIterator->szLocation << '\t';
                 std::clog << index << " : " << cNucleotide << '\n';
             }
             annotationIterator++;

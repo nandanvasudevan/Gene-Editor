@@ -4,15 +4,14 @@
 
 int main()
 {
-    std::vector<std::pair<unsigned int, std::pair<char, char>>> vAnnotated;
-    std::ifstream fAnnotationFile;
-    // const char *originalDataFile = "./resources/cq1b/original.txt";
-    // fAnnotationFile.open(originalDataFile);
-
-    std::string sGeneName = "";
-
     while (true)
     {
+        vChangeDetail vAnnotated;
+        std::ifstream fAnnotationFile;
+        std::string sGeneName = "";
+
+        vAnnotated.reserve(2000);
+
         std::cout << "\nEnter name of gene (q to quit): ";
         std::cin >> sGeneName;
 
@@ -27,7 +26,7 @@ int main()
 
         // std::clog << sAnnotationPath;
 
-        if (ImportChanges(vAnnotated, sAnnotationPath))
+        if (ImportChangeFile(vAnnotated, sAnnotationPath))
         {
             ModifyGene(vAnnotated, sGenePath, sOutputPath);
         }
