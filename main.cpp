@@ -7,6 +7,7 @@ int main()
     while (true)
     {
         vChangeDetail vAnnotated;
+        vPopulationDetail vPopData;
         std::ifstream fAnnotationFile;
         std::string sGeneName = "";
 
@@ -20,15 +21,17 @@ int main()
             break;
         }
 
-        std::string sAnnotationPath = "./resources/" + sGeneName + "/changeList.txt";
+        // std::string sAnnotationPath = "./resources/" + sGeneName + "/changeList.txt";
+        std::string sAnnotationPath = "./resources/" + sGeneName + "/C1QB-POP.txt";
         std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
         std::string sOutputPath = "./resources/" + sGeneName + "/modified.txt";
 
         // std::clog << sAnnotationPath;
 
-        if (ImportChangeFile(vAnnotated, sAnnotationPath))
-        {
-            ModifyGene(vAnnotated, sGenePath, sOutputPath);
-        }
+        ImportPopulationData(vPopData, sAnnotationPath);
+        // if (ImportChangeFile(vAnnotated, sAnnotationPath))
+        // {
+        //     ModifyGene(vAnnotated, sGenePath, sOutputPath);
+        // }
     }
 }

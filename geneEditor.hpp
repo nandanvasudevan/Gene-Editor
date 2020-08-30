@@ -23,8 +23,7 @@
 
 enum PopulationRegion
 {
-    REG_NONE = 0,
-    REG_AFRICA,
+    REG_AFRICA = 0,
     REG_AMERICA,
     REG_EAST_ASIA,
     REG_EUROPE,
@@ -63,7 +62,7 @@ struct sPopulationDetail
     char cReferenceAllele;
     char cAlternateAllele;
     char cMinorAllele;
-    PopulationRegion eRegion;
+    float fRatio[5];
 
     sPopulationDetail()
         : sVerificationID("-"),
@@ -73,7 +72,7 @@ struct sPopulationDetail
           cReferenceAllele('-'),
           cAlternateAllele('-'),
           cMinorAllele('-'),
-          eRegion(REG_NONE)
+          fRatio{0, 0, 0, 0, 0}
 
     {
     }
@@ -90,10 +89,23 @@ struct sPopulationDetail
     }
 };
 
+struct ChangeFileOptions
+{
+    PopulationRegion eRegion;
+    float fRationThreshold;
+
+    ChangeFileOptions() : eRegion(REG_AFRICA),
+                          fRationThreshold(0.0)
+    {
+    }
+};
+
 typedef std::vector<sChangeDetail> vChangeDetail;
 typedef std::vector<sPopulationDetail> vPopulationDetail;
 
-bool ImportPopulationData(vPopulationDetail &vPopData, vChangeDetail &vChangeData, std::string sPopFilePath);
+bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader = true);
+
+bool DeriveChangeFile(const vPopulationDetail vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
 
 /**
  * @brief Create an annotation vector with information related to the changes to be made.

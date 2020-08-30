@@ -14,7 +14,34 @@
 #include <streambuf>
 #include "geneEditor.hpp"
 
-bool ImportPopulationData(vPopulationDetail &vPopData, vChangeDetail &vChangeData, std::string sPopFilePath)
+std::string getRegion(PopulationRegion eRegion)
+{
+    std::string sRegion;
+    switch (eRegion)
+    {
+    case 0:
+        sRegion = "__africa";
+        break;
+    case 1:
+        sRegion = "__america";
+        break;
+    case 2:
+        sRegion = "__east_asia";
+        break;
+    case 3:
+        sRegion = "__europe";
+        break;
+    case 4:
+        sRegion = "__south_asia";
+        break;
+    default:
+        sRegion = "";
+    }
+
+    return sRegion;
+}
+
+bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader)
 {
     std::ifstream fPopFile;
     fPopFile.open(sPopFilePath);
@@ -32,8 +59,143 @@ bool ImportPopulationData(vPopulationDetail &vPopData, vChangeDetail &vChangeDat
 
             fPopFile.close();
         }
+
+        {
+            std::string sLine;
+            std::stringstream sRawStream(sRawFile);
+
+            if (bIgnoreHeader)
+            {
+                getline(sRawStream, sLine, '\n');
+            }
+
+            while (getline(sRawStream, sLine, '\n'))
+            {
+                std::stringstream sLineStream(sLine);
+                std::string sTabDelemitted;
+                sPopulationDetail *popData = new sPopulationDetail();
+                static size_t state = 0;
+
+                while (getline(sLineStream, sTabDelemitted, '\t'))
+                {
+                    static size_t iRatioIndex = 0;
+                    static int iPrevLocation = -1; // to discard duplicates
+                    char cRead = '0';
+                    bool bSkipLine = false;
+
+                    switch (state)
+                    {
+                    case 0:
+
+                        popData->sVerificationID = sTabDelemitted;
+                        state++;
+                        break;
+
+                    case 1:
+                        popData->sChromosome = sTabDelemitted;
+                        std::clog << "\nChromosome: " << popData->sChromosome << '\n';
+                        state++;
+                        break;
+
+                    case 2:
+                        popData->szLocation = stoi(sTabDelemitted);
+                        if (popData->szLocation == iPrevLocation)
+                        {
+                            bSkipLine = true;
+                        }
+                        else
+                        {
+                            iPrevLocation = popData->szLocation;
+                            state++;
+                        }
+                        break;
+
+                    case 3:
+                        popData->sDbSNP = sTabDelemitted;
+                        state++;
+                        break;
+
+                    case 4:
+                        cRead = sTabDelemitted.c_str()[0];
+                        if (cRead != '-')
+                        {
+                            popData->cReferenceAllele = cRead;
+                            state++;
+                        }
+                        else
+                        {
+                            bSkipLine = true;
+                        }
+                        break;
+
+                    case 5:
+                        cRead = sTabDelemitted.c_str()[0];
+                        if (cRead != '-')
+                        {
+                            popData->cAlternateAllele = cRead;
+                            state++;
+                        }
+                        else
+                        {
+                            bSkipLine = true;
+                        }
+                        break;
+
+                    case 6:
+                        cRead = sTabDelemitted.c_str()[0];
+                        if (cRead != '-')
+                        {
+                            popData->cMinorAllele = cRead;
+                            state++;
+                        }
+                        else
+                        {
+                            bSkipLine = true;
+                        }
+                        break;
+
+                    case 7:
+                        iRatioIndex = state;
+                        [[fallthrough]];
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                        popData->fRatio[state - iRatioIndex] = stof(sTabDelemitted);
+                        std::clog << "Element [" << state - iRatioIndex << "]: " << popData->fRatio[state - iRatioIndex] << '\t';
+                        state++;
+                        break;
+                    default:
+                        std::clog << "state: " << state << '\n';
+                        break;
+                    }
+
+                    if (bSkipLine)
+                    {
+                        std::string temp;
+                        getline(sRawStream, temp, '\n');
+                    }
+                }
+                state = 0;
+                vPopData.emplace_back(popData);
+                delete popData;
+            }
+        }
     }
 
+    return true;
+}
+
+bool DeriveChangeFile(const vPopulationDetail vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options)
+{
+    for (auto iterator : vPopData)
+    {
+        float fRatio = iterator.fRatio[(int)options.eRegion];
+        if (fRatio >= options.fRationThreshold)
+        {
+            //TODO: Populate change data vector
+        }
+    }
     return true;
 }
 
