@@ -40,15 +40,13 @@ struct sChangeDetail
     sChangeDetail()
         : szLocation(0),
           cReferenceAllele('-'),
-          cAlternateAllele('-'),
-          cMinorAllele('-')
+          cAlternateAllele('-')
     {
     }
 
     sChangeDetail(sChangeDetail *og) : szLocation(og->szLocation),
                                        cReferenceAllele(og->cReferenceAllele),
-                                       cAlternateAllele(og->cAlternateAllele),
-                                       cMinorAllele(og->cMinorAllele)
+                                       cAlternateAllele(og->cAlternateAllele)
     {
     }
 };
@@ -62,7 +60,7 @@ struct sPopulationDetail
     char cReferenceAllele;
     char cAlternateAllele;
     char cMinorAllele;
-    float fRatio[5];
+    unsigned int iRatio[5];
 
     sPopulationDetail()
         : sVerificationID("-"),
@@ -72,7 +70,7 @@ struct sPopulationDetail
           cReferenceAllele('-'),
           cAlternateAllele('-'),
           cMinorAllele('-'),
-          fRatio{0, 0, 0, 0, 0}
+          iRatio{0, 0, 0, 0, 0}
 
     {
     }
@@ -86,16 +84,32 @@ struct sPopulationDetail
           cAlternateAllele(og->cAlternateAllele),
           cMinorAllele(og->cMinorAllele)
     {
+        for (int i = 0; i < 5; i++)
+        {
+            iRatio[i] = og->iRatio[i];
+        }
     }
 };
 
 struct ChangeFileOptions
 {
     PopulationRegion eRegion;
-    float fRationThreshold;
+    unsigned int iRatioThreshold;
+    size_t szStartIndex;
+    size_t szEndIndex;
 
     ChangeFileOptions() : eRegion(REG_AFRICA),
-                          fRationThreshold(0.0)
+                          iRatioThreshold(0),
+                          szStartIndex(0),
+                          szEndIndex(0)
+    {
+    }
+
+    ChangeFileOptions(PopulationRegion region, float threshold, size_t start, size_t end)
+        : eRegion(region),
+          iRatioThreshold(threshold * 10000),
+          szStartIndex(start),
+          szEndIndex(end)
     {
     }
 };
@@ -105,7 +119,7 @@ typedef std::vector<sPopulationDetail> vPopulationDetail;
 
 bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader = true);
 
-bool DeriveChangeFile(const vPopulationDetail vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
+bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
 
 /**
  * @brief Create an annotation vector with information related to the changes to be made.
@@ -123,6 +137,7 @@ bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
  * @param sInputPath path to file containing gene sequence
  * @param sOutputPath Path to modified file
  */
-void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath);
+void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath, size_t startOffset);
 
+std::string getRegion(PopulationRegion eRegion);
 #endif

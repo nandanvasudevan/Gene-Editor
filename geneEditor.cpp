@@ -73,13 +73,13 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
             {
                 std::stringstream sLineStream(sLine);
                 std::string sTabDelemitted;
-                sPopulationDetail *popData = new sPopulationDetail();
-                static size_t state = 0;
+                sPopulationDetail popData = new sPopulationDetail();
+                size_t state = 0;
 
+                float fRatioAccumulator = -0.001;
                 while (getline(sLineStream, sTabDelemitted, '\t'))
                 {
                     static size_t iRatioIndex = 0;
-                    static int iPrevLocation = -1; // to discard duplicates
                     char cRead = '0';
                     bool bSkipLine = false;
 
@@ -87,31 +87,22 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                     {
                     case 0:
 
-                        popData->sVerificationID = sTabDelemitted;
+                        popData.sVerificationID = sTabDelemitted;
                         state++;
                         break;
 
                     case 1:
-                        popData->sChromosome = sTabDelemitted;
-                        std::clog << "\nChromosome: " << popData->sChromosome << '\n';
+                        popData.sChromosome = sTabDelemitted;
                         state++;
                         break;
 
                     case 2:
-                        popData->szLocation = stoi(sTabDelemitted);
-                        if (popData->szLocation == iPrevLocation)
-                        {
-                            bSkipLine = true;
-                        }
-                        else
-                        {
-                            iPrevLocation = popData->szLocation;
-                            state++;
-                        }
+                        popData.szLocation = stoi(sTabDelemitted);
+                        state++;
                         break;
 
                     case 3:
-                        popData->sDbSNP = sTabDelemitted;
+                        popData.sDbSNP = sTabDelemitted;
                         state++;
                         break;
 
@@ -119,7 +110,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         cRead = sTabDelemitted.c_str()[0];
                         if (cRead != '-')
                         {
-                            popData->cReferenceAllele = cRead;
+                            popData.cReferenceAllele = cRead;
                             state++;
                         }
                         else
@@ -132,7 +123,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         cRead = sTabDelemitted.c_str()[0];
                         if (cRead != '-')
                         {
-                            popData->cAlternateAllele = cRead;
+                            popData.cAlternateAllele = cRead;
                             state++;
                         }
                         else
@@ -145,7 +136,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         cRead = sTabDelemitted.c_str()[0];
                         if (cRead != '-')
                         {
-                            popData->cMinorAllele = cRead;
+                            popData.cMinorAllele = cRead;
                             state++;
                         }
                         else
@@ -155,30 +146,30 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         break;
 
                     case 7:
+                        fRatioAccumulator = -0.0001;
                         iRatioIndex = state;
                         [[fallthrough]];
                     case 8:
                     case 9:
                     case 10:
                     case 11:
-                        popData->fRatio[state - iRatioIndex] = stof(sTabDelemitted);
-                        std::clog << "Element [" << state - iRatioIndex << "]: " << popData->fRatio[state - iRatioIndex] << '\t';
+                        popData.iRatio[state - iRatioIndex] = stof(sTabDelemitted) * 10000;
+                        fRatioAccumulator += popData.iRatio[state - iRatioIndex];
                         state++;
                         break;
                     default:
-                        std::clog << "state: " << state << '\n';
                         break;
                     }
 
                     if (bSkipLine)
                     {
-                        std::string temp;
-                        getline(sRawStream, temp, '\n');
+                        break;
                     }
                 }
-                state = 0;
-                vPopData.emplace_back(popData);
-                delete popData;
+                if (fRatioAccumulator > 0)
+                {
+                    vPopData.push_back(popData);
+                }
             }
         }
     }
@@ -186,20 +177,27 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
     return true;
 }
 
-bool DeriveChangeFile(const vPopulationDetail vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options)
+bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options)
 {
-    for (auto iterator : vPopData)
+    sChangeDetail sChangeData;
+    for (auto popDataIterator : vPopData)
     {
-        float fRatio = iterator.fRatio[(int)options.eRegion];
-        if (fRatio >= options.fRationThreshold)
-        {
-            //TODO: Populate change data vector
-        }
+        sChangeData = new sChangeDetail();
+        unsigned int iRatio = popDataIterator.iRatio[1];
+        if ((popDataIterator.szLocation >= options.szStartIndex) && (popDataIterator.szLocation <= options.szEndIndex))
+            if (iRatio >= options.iRatioThreshold)
+            {
+                sChangeData.szLocation = popDataIterator.szLocation;
+                sChangeData.cReferenceAllele = popDataIterator.cReferenceAllele;
+                sChangeData.cAlternateAllele = popDataIterator.cAlternateAllele;
+                vChangeData.push_back(sChangeData);
+            }
     }
+
     return true;
 }
 
-bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
+[[deprecated]] bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
 {
     std::ifstream fAnnotationFile;
     fAnnotationFile.open(sPath);
@@ -222,31 +220,29 @@ bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
             while (getline(wordString, word, '\t'))
             {
                 static int parameterID = 0;
-                static sChangeDetail *detail;
+                static sChangeDetail detail;
 
                 switch (parameterID)
                 {
                 case 0:
                     detail = new sChangeDetail();
                     uiElementindex = std::stoi(word);
-                    detail->szLocation = uiElementindex;
+                    detail.szLocation = uiElementindex;
 
                     parameterID = 1;
                     break;
                 case 1:
                     cReferenceAllele = word.c_str()[0];
-                    detail->cReferenceAllele = cReferenceAllele;
+                    detail.cReferenceAllele = cReferenceAllele;
 
                     parameterID = 2;
                     break;
                 case 2:
                     cReplacementNucleotide = word.c_str()[0];
-                    detail->cAlternateAllele = cReplacementNucleotide;
+                    detail.cAlternateAllele = cReplacementNucleotide;
 
-                    vAnnotatedVector.emplace_back(detail);
+                    vAnnotatedVector.push_back(detail);
                     parameterID = 0;
-
-                    delete detail;
                     break;
                 default:
                     std::clog << "Default triggered: " << word << '\n';
@@ -273,14 +269,14 @@ bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
     return true;
 }
 
-void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath)
+void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath, size_t startOffset)
 {
     std::ifstream fAnnotationFile;
     std::ofstream fModifiedFile;
     std::string sGene;
 
     fAnnotationFile.open(sInputPath);
-    fModifiedFile.open(sOutputPath, std::ios::out | std::ios::app);
+    fModifiedFile.open(sOutputPath, std::ios::out);
 
     { // Copy entire file to string and close the file
         fAnnotationFile.seekg(0, std::ios::end);
@@ -294,23 +290,13 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
 
     for (char &cNucleotide : sGene)
     {
-        static size_t index = 1;
+        static size_t index = 0;
 
-        if (annotationIterator->szLocation == index)
+        if (annotationIterator->szLocation == index + startOffset)
         {
             if (cNucleotide == annotationIterator->cReferenceAllele)
             {
-                std::clog << "Index: " << annotationIterator->cReferenceAllele << '\t';
-                std::clog << "Existing nucleotide: " << cNucleotide << " : " << sGene.at(index - 1) << '\t';
-
                 std::exchange(cNucleotide, annotationIterator->cAlternateAllele);
-
-                std::clog << "Replacement nucleotide: " << annotationIterator->cAlternateAllele << " : " << sGene.at(index - 1) << '\n';
-            }
-            else
-            {
-                std::clog << "Index: " << annotationIterator->szLocation << '\t';
-                std::clog << index << " : " << cNucleotide << '\n';
             }
             annotationIterator++;
         }
