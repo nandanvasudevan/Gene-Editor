@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 
+#define MAX_SUPPORTED_REGIONS 5
 #define ORIGINAL_DATA_FILE "original.txt"
 #define ANNOTATION_FILE "changeList.txt"
 #define GENE "c1qb"
@@ -138,6 +139,4 @@ bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
  * @param sOutputPath Path to modified file
  */
 void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::string sOutputPath, size_t startOffset);
-
-std::string getRegion(PopulationRegion eRegion);
 #endif
