@@ -6,6 +6,7 @@
 #include <string.h>
 #include <vector>
 #include <set>
+#include <bits/stdc++.h>
 
 int main()
 {
@@ -26,7 +27,7 @@ int main()
         std::cout
             << "\nEnter name of gene (q to quit): ";
         std::cin >> sGeneName;
-
+        std::transform(sGeneName.begin(), sGeneName.end(), sGeneName.begin(), ::tolower);
         if (sGeneName == "q")
         {
             break;
@@ -137,7 +138,9 @@ Select region: )";
                         for (auto iterator : MultipleRegionEntry)
                         {
                             std::string sAnnotationPath = "./resources/" + sGeneName + "/changeList.txt";
-                            std::string sPopFilePath = "./resources/" + sGeneName + "/C1QB-POP.txt";
+                            std::string popFile;
+                            std::transform(sGeneName.begin(), sGeneName.end(), popFile.begin(), ::toupper);
+                            std::string sPopFilePath = "./resources/" + sGeneName + "/" + popFile + "-POP.txt";
                             std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
                             std::string sOutputPath = "./resources/" + sGeneName + "/modified_" + iterator.second + ".txt";
 
