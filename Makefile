@@ -7,8 +7,8 @@ SRC:= ./
 
 DEFAULT: $(OUTPUT)/$(PROGRAM).out
 
-$(OUTPUT)/$(PROGRAM).out: $(SRC)main.cpp $(SRC)$(PROGRAM).hpp $(SRC)$(PROGRAM).cpp
-	$(CXX) $(FLAGS) $^ -o $@
+$(OUTPUT)/$(PROGRAM).out: $(SRC)main.cpp $(OUTPUT)/$(PROGRAM).o
+	$(CXX) $(FLAGS) $^ -o $@ -lstdc++fs
 
 $(OUTPUT)/$(PROGRAM).o: $(SRC)$(PROGRAM).cpp $(SRC)$(PROGRAM).hpp
 	$(CXX) $(FLAGS) $^ -c

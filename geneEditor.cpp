@@ -172,6 +172,10 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
             }
         }
     }
+    else
+    {
+        return false;
+    }
 
     return true;
 }
@@ -179,6 +183,12 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
 bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options)
 {
     sChangeDetail sChangeData;
+
+    if (vPopData.size() <= 0)
+    {
+        return false;
+    }
+
     for (auto popDataIterator : vPopData)
     {
         sChangeData = new sChangeDetail();

@@ -2,12 +2,20 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <experimental/filesystem>
 #include <sstream>
 #include <string.h>
 #include <vector>
 #include <set>
 #include <bits/stdc++.h>
 
+namespace fs = std::experimental::filesystem;
+
+std::string FONT_RED_BOLD_INVERSE = "\033[1;7;31m";
+std::string FONT_RED_BOLD = "\033[1;31m";
+std::string FONT_GREEN = "\033[32m";
+std::string FONT_RESET = "\033[0m";
 int main()
 {
     while (true)
@@ -19,6 +27,10 @@ int main()
         size_t startOffset;
         size_t endIndex;
         std::set<std::pair<PopulationRegion, std::string>> MultipleRegionEntry;
+        std::string pResources = "./resources/";
+        std::string popFile;
+        std::string sPopFilePath;
+        std::string sOriginalGeneFile;
         float fRatioThreshold = 0.0;
 
         vAnnotated.reserve(2000);
@@ -28,18 +40,74 @@ int main()
             << "\nEnter name of gene (q to quit): ";
         std::cin >> sGeneName;
         std::transform(sGeneName.begin(), sGeneName.end(), sGeneName.begin(), ::tolower);
+
+        // Check if {gene} directory exists
+        {
+            fs::path pGeneDirectory(pResources + sGeneName);
+            fs::file_status fsStatus = fs::status(pGeneDirectory);
+
+            if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGeneDirectory))
+            {
+                std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tDirectory for " + sGeneName + " found" + FONT_RESET;
+                {
+                    popFile = sGeneName;
+                    std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
+
+                    sPopFilePath = pResources + sGeneName + "/" + popFile + "-POP.txt";
+
+                    fs::path pGenePopulationFile(sPopFilePath);
+                    fsStatus = fs::status(pGenePopulationFile);
+                    if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGenePopulationFile))
+                    {
+                        std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tPopulation file for " + sGeneName + " found" + FONT_RESET;
+
+                        {
+                            sOriginalGeneFile = pResources + sGeneName + "/" + "original.txt";
+
+                            fs::path pOriginalGeneFile(sOriginalGeneFile);
+                            fsStatus = fs::status(pOriginalGeneFile);
+                            if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pOriginalGeneFile))
+                            {
+                                std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tOriginal gene file for " + sGeneName + " found" + FONT_RESET;
+                            }
+                            else
+                            {
+                                std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot original gene file [original.txt] for \"" + sGeneName + "\" in " + pResources + sGeneName + FONT_RESET + "\n\n";
+                                continue;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot find population file for \"" + sGeneName + "\" in " + pResources + sGeneName + FONT_RESET;
+                        std::clog << FONT_RED_BOLD << R"(
+            Probable causes:
+                1. File does not exist
+                2. Incorrect file name format
+                        <GENE>-POP.txt
+                                )" << FONT_RESET
+                                  << '\n';
+                        continue;
+                    }
+                }
+            }
+            else
+            {
+                std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot find gene \"" + sGeneName + "\" in " + pResources + FONT_RESET + "\n\n";
+                continue;
+            }
+        }
+
         if (sGeneName == "q")
         {
             break;
         }
-        std::cout << "\nEnter start offset: ";
+        std::cout
+            << "\nEnter start offset: ";
         std::cin >> startOffset;
 
         std::cout << "\nEnter end index: ";
         std::cin >> endIndex;
-
-        std::cout << "\nEnter threshold for ratio: ";
-        std::cin >> fRatioThreshold;
 
         {
             char geneMenuChoice;
@@ -47,6 +115,8 @@ int main()
 
             do
             {
+                std::cout << "\nEnter threshold for ratio: ";
+                std::cin >> fRatioThreshold;
 
                 std::cout << R"(
 Available regions
@@ -137,20 +207,36 @@ Select region: )";
 
                         for (auto iterator : MultipleRegionEntry)
                         {
-                            std::string sAnnotationPath = "./resources/" + sGeneName + "/changeList.txt";
-                            std::string popFile;
-                            std::transform(sGeneName.begin(), sGeneName.end(), popFile.begin(), ::toupper);
-                            std::string sPopFilePath = "./resources/" + sGeneName + "/" + popFile + "-POP.txt";
-                            std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
+                            popFile = sGeneName;
+                            std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
+
+                            // std::string sPopFilePath = "./resources/" + sGeneName + "/" + popFile + "-POP.txt";
+                            // std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
                             std::string sOutputPath = "./resources/" + sGeneName + "/modified_" + iterator.second + ".txt";
 
                             std::clog << iterator.first << " : " << iterator.second << '\n';
 
                             ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
 
-                            ImportPopulationData(vPopData, sPopFilePath);
-                            DeriveChangeFile(vPopData, vAnnotated, *options);
-                            ModifyGene(vAnnotated, sGenePath, sOutputPath, startOffset);
+                            if (ImportPopulationData(vPopData, sPopFilePath))
+                            {
+                                if (DeriveChangeFile(vPopData, vAnnotated, *options))
+                                {
+                                    ModifyGene(vAnnotated, sOriginalGeneFile, sOutputPath, startOffset);
+                                }
+                            }
+                            else
+                            {
+                                std::clog << FONT_RED_BOLD_INVERSE + "\n\t\tCould not process population data" + FONT_RESET + '\n';
+                                std::clog << R"(
+            Probables causes:
+                1. File does not exist
+                2. Incorrect file name format
+                        <GENE>-POP.txt
+                                )";
+                            }
+
+                            delete options;
                         }
                     }
                     else
@@ -179,8 +265,7 @@ Select: )";
                         exit(0);
                     }
                 }
-
             } while (false == exitMenu);
         }
     }
-}
+} // namespace fs=std::experimental::filesystemintmain()
