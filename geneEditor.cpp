@@ -7,11 +7,12 @@
  * 
  * @copyright Copyright (c) 2020 
  */
+#include "geneEditor.hpp"
+#include "common.hpp"
 
 #include <string.h>
 #include <cstdio>
 #include <sstream>
-#include "geneEditor.hpp"
 
 std::string getRegion(PopulationRegion eRegion)
 {
@@ -192,15 +193,17 @@ bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeD
     for (auto popDataIterator : vPopData)
     {
         sChangeData = new sChangeDetail();
-        unsigned int iRatio = popDataIterator.iRatio[1];
+        unsigned int iRatio = popDataIterator.iRatio[(int)options.eRegion];
         if ((popDataIterator.szLocation >= options.szStartIndex) && (popDataIterator.szLocation <= options.szEndIndex))
-            if (iRatio >= options.iRatioThreshold)
+        {
+            if (iRatio > options.iRatioThreshold)
             {
                 sChangeData.szLocation = popDataIterator.szLocation;
                 sChangeData.cReferenceAllele = popDataIterator.cReferenceAllele;
                 sChangeData.cAlternateAllele = popDataIterator.cAlternateAllele;
                 vChangeData.push_back(sChangeData);
             }
+        }
     }
 
     return true;
@@ -297,17 +300,24 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
 
     vChangeDetail::iterator annotationIterator = vAnnotatedVector.begin();
 
+    size_t index = 0;
+
     for (char &cNucleotide : sGene)
     {
-        static size_t index = 0;
 
         if (annotationIterator->szLocation == index + startOffset)
         {
             if (cNucleotide == annotationIterator->cReferenceAllele)
             {
-                std::exchange(cNucleotide, annotationIterator->cAlternateAllele);
+                cNucleotide = annotationIterator->cAlternateAllele;
+                annotationIterator++;
             }
-            annotationIterator++;
+            else
+            {
+                std::clog << FONT_RED_BOLD_INVERSE << "Nucleotide mismatch | Index match" << FONT_RESET << FONT_RED_BOLD << "\n"
+                          << "Index = " << annotationIterator->szLocation << " : " << index << " Curr: " << cNucleotide << " Alt: " << annotationIterator->cAlternateAllele << '\n'
+                          << FONT_RESET;
+            }
         }
         index++;
     }

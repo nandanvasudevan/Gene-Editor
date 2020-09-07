@@ -1,4 +1,5 @@
 #include "geneEditor.hpp"
+#include "common.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -12,10 +13,6 @@
 
 namespace fs = std::experimental::filesystem;
 
-std::string FONT_RED_BOLD_INVERSE = "\033[1;7;31m";
-std::string FONT_RED_BOLD = "\033[1;31m";
-std::string FONT_GREEN = "\033[32m";
-std::string FONT_RESET = "\033[0m";
 int main()
 {
     while (true)
@@ -48,7 +45,7 @@ int main()
 
             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGeneDirectory))
             {
-                std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tDirectory for " + sGeneName + " found" + FONT_RESET;
+                std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Directory for " + sGeneName + " found" + FONT_RESET;
                 {
                     popFile = sGeneName;
                     std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
@@ -59,7 +56,7 @@ int main()
                     fsStatus = fs::status(pGenePopulationFile);
                     if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGenePopulationFile))
                     {
-                        std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tPopulation file for " + sGeneName + " found" + FONT_RESET;
+                        std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Population file for " + sGeneName + " found" + FONT_RESET;
 
                         {
                             sOriginalGeneFile = pResources + sGeneName + "/" + "original.txt";
@@ -68,7 +65,7 @@ int main()
                             fsStatus = fs::status(pOriginalGeneFile);
                             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pOriginalGeneFile))
                             {
-                                std::clog << FONT_GREEN + "\n\xE2\x9C\x93\tOriginal gene file for " + sGeneName + " found" + FONT_RESET;
+                                std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Original gene file for " + sGeneName + " found" + FONT_RESET;
                             }
                             else
                             {
@@ -213,8 +210,6 @@ Select region: )";
                             // std::string sPopFilePath = "./resources/" + sGeneName + "/" + popFile + "-POP.txt";
                             // std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
                             std::string sOutputPath = "./resources/" + sGeneName + "/modified_" + iterator.second + ".txt";
-
-                            std::clog << iterator.first << " : " << iterator.second << '\n';
 
                             ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
 
