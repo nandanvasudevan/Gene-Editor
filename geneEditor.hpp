@@ -22,21 +22,27 @@
 #define GENE "c1qb"
 #define PATH "./resources/" + GENE + "/"
 
+/**
+ * @brief Enumeration for selection of population region.
+ */
 enum PopulationRegion
 {
-    REG_AFRICA = 0,
-    REG_AMERICA,
-    REG_EAST_ASIA,
-    REG_EUROPE,
-    REG_SOUTH_ASIA
+    REG_AFRICA = 0, ///< African region
+    REG_AMERICA,    ///< American region
+    REG_EAST_ASIA,  ///< East asian region
+    REG_EUROPE,     ///< European region
+    REG_SOUTH_ASIA  ///< South asian region
 };
 
+/**
+ * @brief Structure maintaining all the necessary details required to modify input gene.
+ */
 struct sChangeDetail
 {
-    size_t szLocation;
-    char cReferenceAllele;
-    char cAlternateAllele;
-    char cMinorAllele;
+    size_t szLocation;     ///< The location of the nucleotide
+    char cReferenceAllele; ///< The reference allele to be existing at @ref szLocation
+    char cAlternateAllele; ///< The alternate allele to be swapped with @ref cReferenceAllele
+    char cMinorAllele;     ///< Currently unused
 
     sChangeDetail()
         : szLocation(0),
@@ -52,16 +58,19 @@ struct sChangeDetail
     }
 };
 
+/**
+ * @brief Structure to store data from the entire population spread across @ref PopulationRegion
+ */
 struct sPopulationDetail
 {
-    std::string sVerificationID;
-    std::string sChromosome;
-    size_t szLocation;
-    std::string sDbSNP;
-    char cReferenceAllele;
-    char cAlternateAllele;
-    char cMinorAllele;
-    unsigned int iRatio[5];
+    std::string sVerificationID; ///< Unused
+    std::string sChromosome;     ///< Chromosome ID of nucleotide
+    size_t szLocation;           ///< The location of nucleotide in the gene
+    std::string sDbSNP;          ///< Unused
+    char cReferenceAllele;       ///< Nucleotide to be replaced
+    char cAlternateAllele;       ///< Nucleotide to be replaced with
+    char cMinorAllele;           ///< Unused
+    unsigned int iRatio[5];      ///< Percentage of occurace of mutation across the 5 main regions of @ref PopulationRegion
 
     sPopulationDetail()
         : sVerificationID("-"),
@@ -92,12 +101,15 @@ struct sPopulationDetail
     }
 };
 
+/**
+ * @brief Structure containing options to be passed in while processing
+ */
 struct ChangeFileOptions
 {
-    PopulationRegion eRegion;
-    unsigned int iRatioThreshold;
-    size_t szStartIndex;
-    size_t szEndIndex;
+    PopulationRegion eRegion;     ///< The region selected by the user
+    unsigned int iRatioThreshold; ///< The threshold percentage below which mutation must be ignored (x10000)
+    size_t szStartIndex;          ///< Index to begin from (starting index from original gene file)
+    size_t szEndIndex;            ///< Index to end at (last index of original gene file)
 
     ChangeFileOptions() : eRegion(REG_AFRICA),
                           iRatioThreshold(0),
@@ -118,8 +130,26 @@ struct ChangeFileOptions
 typedef std::vector<sChangeDetail> vChangeDetail;
 typedef std::vector<sPopulationDetail> vPopulationDetail;
 
+/**
+ * @brief Imports population data into a vector from a specified path
+ * 
+ * @param vPopData Vector to which data is imported into
+ * @param sPopFilePath Path at which population data is present
+ * @param bIgnoreHeader Ignores the first line
+ * @return true Successful import
+ * @return false File not found
+ */
 bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader = true);
 
+/**
+ * @brief Derive change file from population data
+ * 
+ * @param vPopData Vector containing population data
+ * @param vChangeData Vector to store details of changes to be made based on user input
+ * @param options Options passed from user input
+ * @return true Successful
+ * @return false Invalid population data
+ */
 bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
 
 /**

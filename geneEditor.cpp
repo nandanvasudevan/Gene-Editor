@@ -14,25 +14,27 @@
 #include <cstdio>
 #include <sstream>
 
-std::string getRegion(PopulationRegion eRegion)
+//TODO Verify changes made
+
+std::string getRegion(PopulationRegion eRegion, std::string sPrefix = "__")
 {
     std::string sRegion;
     switch (eRegion)
     {
     case 0:
-        sRegion = "__africa";
+        sRegion = sPrefix + "africa";
         break;
     case 1:
-        sRegion = "__america";
+        sRegion = sPrefix + "america";
         break;
     case 2:
-        sRegion = "__east_asia";
+        sRegion = sPrefix + "east_asia";
         break;
     case 3:
-        sRegion = "__europe";
+        sRegion = sPrefix + "europe";
         break;
     case 4:
-        sRegion = "__south_asia";
+        sRegion = sPrefix + "south_asia";
         break;
     default:
         sRegion = "";

@@ -97,6 +97,7 @@ int main()
 
         if (sGeneName == "q")
         {
+            std::clog << FONT_GREEN_BOLD << "\n\tExiting..." << FONT_RESET << '\n';
             break;
         }
         std::cout
@@ -146,12 +147,13 @@ Select region: )";
 
                     if (regionInput.length() > 0)
                     {
-                        std::string sCSV;
-                        std::stringstream tempInputBuffer(regionInput);
                         PopulationRegion eRegion = REG_AFRICA;
                         std::string sRegion = "";
 
+                        std::string sCSV;
+                        std::stringstream tempInputBuffer(regionInput);
                         std::string sLine;
+
                         getline(tempInputBuffer, sLine, '\n');
                         std::stringstream tempLineBuffer(sLine);
 
@@ -165,7 +167,8 @@ Select region: )";
                             }
                             catch (const std::exception &e)
                             {
-                                std::cerr << "Invalid input\n";
+                                std::cerr << FONT_RED_BOLD_INVERSE << "\n\tInvalid input\n"
+                                          << FONT_RESET;
                             }
 
                             if (selectedRegion >= 1)
@@ -195,7 +198,8 @@ Select region: )";
                                 default:
                                     eRegion = REG_AFRICA;
                                     sRegion = "africa";
-                                    std::cout << "\nInvalid choice. Region defaulted to Africa";
+                                    std::cout << FONT_CYAN_BOLD_INVERSE << "\n\tInvalid choice. Region defaulted to Africa\n"
+                                              << FONT_RESET;
                                 }
                             }
                             std::pair<PopulationRegion, std::string> pairRegion(eRegion, sRegion);
@@ -204,11 +208,6 @@ Select region: )";
 
                         for (auto iterator : MultipleRegionEntry)
                         {
-                            popFile = sGeneName;
-                            std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
-
-                            // std::string sPopFilePath = "./resources/" + sGeneName + "/" + popFile + "-POP.txt";
-                            // std::string sGenePath = "./resources/" + sGeneName + "/original.txt";
                             std::string sOutputPath = "./resources/" + sGeneName + "/modified_" + iterator.second + ".txt";
 
                             ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
