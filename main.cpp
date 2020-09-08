@@ -13,6 +13,8 @@
 
 namespace fs = std::experimental::filesystem;
 
+//TODO Output directory must be user defined
+
 int main()
 {
     while (true)
@@ -45,7 +47,7 @@ int main()
 
             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGeneDirectory))
             {
-                std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Directory for " + sGeneName + " found" + FONT_RESET;
+                std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Directory for " + sGeneName + " found" + FONT_RESET;
                 {
                     popFile = sGeneName;
                     std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
@@ -56,7 +58,7 @@ int main()
                     fsStatus = fs::status(pGenePopulationFile);
                     if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGenePopulationFile))
                     {
-                        std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Population file for " + sGeneName + " found" + FONT_RESET;
+                        std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Population file for " + sGeneName + " found" + FONT_RESET;
 
                         {
                             sOriginalGeneFile = pResources + sGeneName + "/" + "original.txt";
@@ -65,7 +67,7 @@ int main()
                             fsStatus = fs::status(pOriginalGeneFile);
                             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pOriginalGeneFile))
                             {
-                                std::clog << FONT_GREEN + "\n\t\xE2\x9C\x93 Original gene file for " + sGeneName + " found" + FONT_RESET;
+                                std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Original gene file for " + sGeneName + " found" + FONT_RESET;
                             }
                             else
                             {
@@ -208,7 +210,11 @@ Select region: )";
 
                         for (auto iterator : MultipleRegionEntry)
                         {
-                            std::string sOutputPath = "./resources/" + sGeneName + "/modified_" + iterator.second + ".txt";
+                            char caRatio[7];
+                            sprintf(caRatio, "%.4f", fRatioThreshold);
+                            std::clog << FONT_CYAN_BOLD_INVERSE << caRatio << FONT_RESET << '\n';
+
+                            std::string sOutputPath = pResources + sGeneName + "/modified_" + iterator.second + "__" + caRatio + ".txt";
 
                             ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
 

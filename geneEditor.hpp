@@ -15,6 +15,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #define MAX_SUPPORTED_REGIONS 5
 #define ORIGINAL_DATA_FILE "original.txt"
@@ -107,20 +108,23 @@ struct sPopulationDetail
 struct ChangeFileOptions
 {
     PopulationRegion eRegion;     ///< The region selected by the user
+    unsigned int uiGain;          ///< Power of 10 to be multiplied with ratio to remove floating point comparison
     unsigned int iRatioThreshold; ///< The threshold percentage below which mutation must be ignored (x10000)
     size_t szStartIndex;          ///< Index to begin from (starting index from original gene file)
     size_t szEndIndex;            ///< Index to end at (last index of original gene file)
 
     ChangeFileOptions() : eRegion(REG_AFRICA),
+                          uiGain(4),
                           iRatioThreshold(0),
                           szStartIndex(0),
                           szEndIndex(0)
     {
     }
 
-    ChangeFileOptions(PopulationRegion region, float threshold, size_t start, size_t end)
+    ChangeFileOptions(PopulationRegion region, float threshold, size_t start, size_t end, unsigned int gain = 4)
         : eRegion(region),
-          iRatioThreshold(threshold * 10000),
+          uiGain(gain),
+          iRatioThreshold(threshold * pow(10, uiGain)),
           szStartIndex(start),
           szEndIndex(end)
     {
