@@ -352,14 +352,15 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
         {
             if (cNucleotide == annotationIterator->cReferenceAllele)
             {
-                std::clog << FONT_CYAN_BOLD << "\tReplaced: " << ++uiChangesMade << FONT_RED_BOLD << " Mismatch: " << uiMismatches << "\r";
+                ++uiChangesMade;
                 cNucleotide = annotationIterator->cAlternateAllele;
                 annotationIterator++;
             }
             else
             {
-                std::clog << FONT_CYAN_BOLD << "\tReplaced: " << uiChangesMade << FONT_RED_BOLD << " Mismatch: " << ++uiMismatches << "\r";
+                ++uiMismatches;
             }
+            std::clog << FONT_CYAN_BOLD << "\tReplaced: " << uiChangesMade << FONT_RED_BOLD << " Mismatch: " << uiMismatches << "\n";
         }
         index++;
     }

@@ -38,6 +38,13 @@ int main()
         std::cout
             << "\nEnter name of gene (q to quit): ";
         std::cin >> sGeneName;
+
+        if (sGeneName[0] == 'q')
+        {
+            std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tExiting..." << FONT_RESET << "\n\n";
+            break;
+        }
+
         std::transform(sGeneName.begin(), sGeneName.end(), sGeneName.begin(), ::tolower);
 
         // Check if {gene} directory exists
@@ -47,7 +54,7 @@ int main()
 
             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGeneDirectory))
             {
-                std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Directory for " + sGeneName + " found" + FONT_RESET;
+                std::clog << "\n\t" << FONT_CYAN_BOLD_INVERSE << "Checking for directory of " + sGeneName + "... " + FONT_RESET << GLYPH_CHECK_MARK << '\r';
                 {
                     popFile = sGeneName;
                     std::transform(popFile.begin(), popFile.end(), popFile.begin(), ::toupper);
@@ -58,7 +65,7 @@ int main()
                     fsStatus = fs::status(pGenePopulationFile);
                     if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pGenePopulationFile))
                     {
-                        std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Population file for " + sGeneName + " found" + FONT_RESET;
+                        std::clog << "\n\t" + FONT_CYAN_BOLD_INVERSE << "Checking for population file of " + sGeneName + "... " + FONT_RESET << GLYPH_CHECK_MARK << "\r";
 
                         {
                             sOriginalGeneFile = pResources + sGeneName + "/" + "original.txt";
@@ -67,17 +74,19 @@ int main()
                             fsStatus = fs::status(pOriginalGeneFile);
                             if (fs::status_known(fsStatus) ? fs::exists(fsStatus) : fs::exists(pOriginalGeneFile))
                             {
-                                std::clog << "\n\t" + GLYPH_CHECK_MARK << FONT_GREEN << " Original gene file for " + sGeneName + " found" + FONT_RESET;
+                                std::clog << "\n\t" << FONT_CYAN_BOLD_INVERSE << "Checking for original gene file of " + sGeneName + "... " + FONT_RESET << GLYPH_CHECK_MARK;
                             }
                             else
                             {
-                                std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot original gene file [original.txt] for \"" + sGeneName + "\" in " + pResources + sGeneName + FONT_RESET + "\n\n";
+                                std::clog << "\n\t" << FONT_CYAN_BOLD_INVERSE << "Checking for original gene file of " + sGeneName + "... " + FONT_RESET << GLYPH_CROSS_MARK;
+                                std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot find original gene file [original.txt] for \"" + sGeneName + "\" in " + pResources + sGeneName + FONT_RESET + "\n\n";
                                 continue;
                             }
                         }
                     }
                     else
                     {
+                        std::clog << "\t" << FONT_CYAN_BOLD_INVERSE << "Checking for directory of " + sGeneName + "... " + FONT_RESET << GLYPH_CROSS_MARK;
                         std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot find population file for \"" + sGeneName + "\" in " + pResources + sGeneName + FONT_RESET;
                         std::clog << FONT_RED_BOLD << R"(
             Probable causes:
@@ -92,15 +101,10 @@ int main()
             }
             else
             {
+                std::clog << "\n\t" << FONT_CYAN_BOLD_INVERSE << "Checking for directory of " + sGeneName + "... " + FONT_RESET << GLYPH_CROSS_MARK;
                 std::clog << FONT_RED_BOLD_INVERSE + "\n\tCannot find gene \"" + sGeneName + "\" in " + pResources + FONT_RESET + "\n\n";
                 continue;
             }
-        }
-
-        if (sGeneName == "q")
-        {
-            std::clog << FONT_GREEN_BOLD << "\n\tExiting..." << FONT_RESET << '\n';
-            break;
         }
         std::cout
             << "\nEnter start offset: ";
@@ -108,6 +112,13 @@ int main()
 
         std::cout << "\nEnter end index: ";
         std::cin >> endIndex;
+
+        if (startOffset > endIndex)
+        {
+            std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tNOTE:" << FONT_RESET << FONT_CYAN_BOLD << " Start offset must be greater than end index. Swapping inputs.\n"
+                      << FONT_RESET;
+            std::swap(startOffset, endIndex);
+        }
 
         {
             char geneMenuChoice;
@@ -177,7 +188,7 @@ Select region: )";
                         {
                             for (auto iterator : MultipleRegionEntry)
                             {
-                                std::clog << FONT_GREEN_BOLD << "\n\t\t" << iterator.second << FONT_RESET;
+                                std::clog << FONT_GREEN_BOLD << "\n\t\t" << sGeneName << iterator.second << FONT_RESET;
                                 std::string sRatio = std::to_string((int)(fRatioThreshold * 10'000));
 
                                 std::string sOutputPath = pResources + sGeneName + "/modified" + iterator.second + "__0." + sRatio + ".txt";
@@ -227,6 +238,8 @@ Select: )";
                     }
                     else if (geneMenuChoice == 'q')
                     {
+                        std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tExiting...\n\n"
+                                  << FONT_RESET;
                         exit(0);
                     }
                 }
