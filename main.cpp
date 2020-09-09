@@ -173,35 +173,35 @@ Select region: )";
                             std::pair<PopulationRegion, std::string> pairRegion = getRegion(selectedRegion, -1);
                             MultipleRegionEntry.insert(pairRegion);
                         }
-
-                        for (auto iterator : MultipleRegionEntry)
+                        if (ImportPopulationData(vPopData, sPopFilePath))
                         {
-                            char caRatio[7];
-                            std::clog << FONT_CYAN_BOLD_INVERSE << caRatio << FONT_RESET << '\n';
-
-                            std::string sOutputPath = pResources + sGeneName + "/modified" + iterator.second + "__" + caRatio + ".txt";
-
-                            ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
-
-                            if (ImportPopulationData(vPopData, sPopFilePath))
+                            for (auto iterator : MultipleRegionEntry)
                             {
+                                std::clog << FONT_GREEN_BOLD << "\n\t\t" << iterator.second << FONT_RESET;
+                                std::string sRatio = std::to_string((int)(fRatioThreshold * 10'000));
+
+                                std::string sOutputPath = pResources + sGeneName + "/modified" + iterator.second + "__0." + sRatio + ".txt";
+
+                                ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
+
                                 if (DeriveChangeFile(vPopData, vAnnotated, *options))
                                 {
                                     ModifyGene(vAnnotated, sOriginalGeneFile, sOutputPath, startOffset);
                                 }
+
+                                vAnnotated.clear();
+                                delete options;
                             }
-                            else
-                            {
-                                std::clog << FONT_RED_BOLD_INVERSE + "\n\t\tCould not process population data" + FONT_RESET + '\n';
-                                std::clog << R"(
+                        }
+                        else
+                        {
+                            std::clog << FONT_RED_BOLD_INVERSE + "\n\t\tCould not process population data" + FONT_RESET + '\n';
+                            std::clog << R"(
             Probables causes:
                 1. File does not exist
                 2. Incorrect file name format
                         <GENE>-POP.txt
                                 )";
-                            }
-
-                            delete options;
                         }
                     }
                     else

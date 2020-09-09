@@ -67,6 +67,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
     if (fPopFile.is_open())
     {
         std::string sRawFile;
+        std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tImporting population data\r";
 
         { // Copy entire file to string and close the file
             fPopFile.seekg(0, std::ios::end);
@@ -87,17 +88,22 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                 getline(sRawStream, sLine, '\n');
             }
 
+            unsigned int uiLinesRead = 0;
+            /* {
+                std::clog << "\n";
+            } */
             while (getline(sRawStream, sLine, '\n'))
             {
+                {
+                    std::clog << "\tLines read: " << ++uiLinesRead << '\r';
+                }
                 std::stringstream sLineStream(sLine);
                 std::string sTabDelemitted;
                 sPopulationDetail popData = new sPopulationDetail();
                 size_t state = 0;
 
-                float fRatioAccumulator = -0.001;
                 while (getline(sLineStream, sTabDelemitted, '\t'))
                 {
-                    static size_t iRatioIndex = 0;
                     char cRead = '0';
                     bool bSkipLine = false;
 
@@ -106,22 +112,22 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                     case 0:
 
                         popData.sVerificationID = sTabDelemitted;
-                        state++;
+                        ++state;
                         break;
 
                     case 1:
                         popData.sChromosome = sTabDelemitted;
-                        state++;
+                        ++state;
                         break;
 
                     case 2:
                         popData.szLocation = stoi(sTabDelemitted);
-                        state++;
+                        ++state;
                         break;
 
                     case 3:
                         popData.sDbSNP = sTabDelemitted;
-                        state++;
+                        ++state;
                         break;
 
                     case 4:
@@ -129,7 +135,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         if (cRead != '-')
                         {
                             popData.cReferenceAllele = cRead;
-                            state++;
+                            ++state;
                         }
                         else
                         {
@@ -142,7 +148,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         if (cRead != '-')
                         {
                             popData.cAlternateAllele = cRead;
-                            state++;
+                            ++state;
                         }
                         else
                         {
@@ -155,7 +161,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         if (cRead != '-')
                         {
                             popData.cMinorAllele = cRead;
-                            state++;
+                            ++state;
                         }
                         else
                         {
@@ -164,16 +170,24 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         break;
 
                     case 7:
-                        fRatioAccumulator = -0.0001;
-                        iRatioIndex = state;
-                        [[fallthrough]];
-                    case 8:
+                        popData.iRatio[0] = stof(sTabDelemitted) * 10000;
+                        ++state;
+                        break;
                     case 9:
+                        popData.iRatio[1] = stof(sTabDelemitted) * 10000;
+                        ++state;
+                        break;
+                    case 8:
+                        popData.iRatio[2] = stof(sTabDelemitted) * 10000;
+                        ++state;
+                        break;
                     case 10:
+                        popData.iRatio[3] = stof(sTabDelemitted) * 10000;
+                        ++state;
+                        break;
                     case 11:
-                        popData.iRatio[state - iRatioIndex] = stof(sTabDelemitted) * 10000;
-                        fRatioAccumulator += popData.iRatio[state - iRatioIndex];
-                        state++;
+                        popData.iRatio[4] = stof(sTabDelemitted) * 10000;
+                        ++state;
                         break;
                     default:
                         break;
@@ -184,10 +198,11 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
                         break;
                     }
                 }
-                if (fRatioAccumulator > 0)
-                {
-                    vPopData.push_back(popData);
-                }
+                vPopData.push_back(popData);
+            }
+
+            {
+                std::clog << "\tImporting population data... " << GLYPH_CHECK_MARK << FONT_RESET << '\n';
             }
         }
     }
@@ -205,17 +220,23 @@ bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeD
 
     if (vPopData.size() <= 0)
     {
+        std::clog << FONT_RED_BOLD_INVERSE << "\n\tDeriving change file... " << GLYPH_CROSS_MARK << FONT_RESET;
+        std::clog << FONT_RED_BOLD << "\n\tInvalid population data loaded\n"
+                  << FONT_RESET;
         return false;
     }
 
+    std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tDeriving change file...\r";
+    unsigned int tempCount = 0;
     for (auto popDataIterator : vPopData)
     {
         sChangeData = new sChangeDetail();
-        unsigned int iRatio = popDataIterator.iRatio[(int)options.eRegion];
+        unsigned int iRatio = popDataIterator.iRatio[(int)(options.eRegion)];
         if ((popDataIterator.szLocation >= options.szStartIndex) && (popDataIterator.szLocation <= options.szEndIndex))
         {
             if (iRatio > options.iRatioThreshold)
             {
+                ++tempCount;
                 sChangeData.szLocation = popDataIterator.szLocation;
                 sChangeData.cReferenceAllele = popDataIterator.cReferenceAllele;
                 sChangeData.cAlternateAllele = popDataIterator.cAlternateAllele;
@@ -223,6 +244,7 @@ bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeD
             }
         }
     }
+    std::clog << "\tDeriving change file... " << GLYPH_CHECK_MARK << FONT_RESET << "\n";
 
     return true;
 }
@@ -319,7 +341,10 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
     vChangeDetail::iterator annotationIterator = vAnnotatedVector.begin();
 
     size_t index = 0;
+    unsigned int uiChangesMade = 0;
+    unsigned int uiMismatches = 0;
 
+    std::clog << FONT_CYAN_BOLD_INVERSE << "\n\tModifying gene... \n";
     for (char &cNucleotide : sGene)
     {
 
@@ -327,17 +352,20 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
         {
             if (cNucleotide == annotationIterator->cReferenceAllele)
             {
+                std::clog << FONT_CYAN_BOLD << "\tReplaced: " << ++uiChangesMade << FONT_RED_BOLD << " Mismatch: " << uiMismatches << "\r";
                 cNucleotide = annotationIterator->cAlternateAllele;
                 annotationIterator++;
             }
             else
             {
-                std::clog << FONT_RED_BOLD_INVERSE << "Nucleotide mismatch | Index match" << FONT_RESET << FONT_RED_BOLD << "\n"
-                          << "Index = " << annotationIterator->szLocation << " : " << index << " Curr: " << cNucleotide << " Alt: " << annotationIterator->cAlternateAllele << '\n'
-                          << FONT_RESET;
+                std::clog << FONT_CYAN_BOLD << "\tReplaced: " << uiChangesMade << FONT_RED_BOLD << " Mismatch: " << ++uiMismatches << "\r";
             }
         }
         index++;
+    }
+    {
+        std::clog << "\n"
+                  << FONT_RESET;
     }
 
     fModifiedFile << sGene;

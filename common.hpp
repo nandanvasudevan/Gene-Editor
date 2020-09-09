@@ -14,6 +14,8 @@ const std::string FONT_RESET = "\033[0m";
 
 const std::string GLYPH_CHECK_MARK = "\033[1;32m ✔ \033[0m" /* \xE2\x9C\x93" */;
 const std::string GLYPH_CROSS_MARK = "\033[1; ✗" /* \xE2\x9C\x93" */;
+
+//"\x1b[A
 /* 
     void Log_ErrorMessage(const std::string sMessage, const std::string sDescription = "");
     void Log_SuccessMessage(const std::string sMessage, const std::string sDescription = ""); */
