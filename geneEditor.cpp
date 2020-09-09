@@ -13,34 +13,50 @@
 #include <string.h>
 #include <cstdio>
 #include <sstream>
+#include <algorithm>
 
 //TODO Verify changes made
 
-std::string getRegion(PopulationRegion eRegion, std::string sPrefix = "__")
+std::pair<PopulationRegion, std::string> getRegion(const int region, const int offset, const std::string &sPrefix)
 {
+    std::pair<PopulationRegion, std::string> pairRet;
+    PopulationRegion eRegion;
     std::string sRegion;
-    switch (eRegion)
+    unsigned int actualRegion = std::clamp(region + offset, 0, MAX_SUPPORTED_REGIONS);
+
+    switch (actualRegion)
     {
     case 0:
+        eRegion = REG_AFRICA;
         sRegion = sPrefix + "africa";
         break;
     case 1:
+        eRegion = REG_AMERICA;
         sRegion = sPrefix + "america";
         break;
     case 2:
+        eRegion = REG_EAST_ASIA;
         sRegion = sPrefix + "east_asia";
         break;
     case 3:
+        eRegion = REG_EUROPE;
         sRegion = sPrefix + "europe";
         break;
     case 4:
+        eRegion = REG_SOUTH_ASIA;
         sRegion = sPrefix + "south_asia";
         break;
     default:
-        sRegion = "";
+        eRegion = REG_AFRICA;
+        sRegion = sPrefix + "africa";
+        std::cout << FONT_CYAN_BOLD_INVERSE << "\n\tInvalid choice. Region defaulted to Africa\n"
+                  << FONT_RESET;
     }
 
-    return sRegion;
+    pairRet.first = eRegion;
+    pairRet.second = sRegion;
+
+    return std::make_pair(eRegion, sRegion);
 }
 
 bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader)
@@ -329,3 +345,5 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
     fAnnotationFile.close();
     fModifiedFile.close();
 }
+
+// void

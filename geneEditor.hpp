@@ -134,6 +134,8 @@ struct ChangeFileOptions
 typedef std::vector<sChangeDetail> vChangeDetail;
 typedef std::vector<sPopulationDetail> vPopulationDetail;
 
+[[nodiscard]] std::pair<PopulationRegion, std::string> getRegion(const int region, const int offset = 0, const std::string &sPrefix = "_");
+
 /**
  * @brief Imports population data into a vector from a specified path
  * 
@@ -143,7 +145,7 @@ typedef std::vector<sPopulationDetail> vPopulationDetail;
  * @return true Successful import
  * @return false File not found
  */
-bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader = true);
+[[nodiscard]] bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath, bool bIgnoreHeader = true);
 
 /**
  * @brief Derive change file from population data
@@ -154,7 +156,7 @@ bool ImportPopulationData(vPopulationDetail &vPopData, std::string sPopFilePath,
  * @return true Successful
  * @return false Invalid population data
  */
-bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
+[[nodiscard]] bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
 
 /**
  * @brief Create an annotation vector with information related to the changes to be made.
@@ -163,7 +165,7 @@ bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeD
  * @param sPath Path to file containing changes
  * @return true if import is successful, else false
  */
-bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
+[[nodiscard]] bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
 
 /**
  * @brief Modify nucleotides in a gene based on passed data

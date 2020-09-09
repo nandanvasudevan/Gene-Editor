@@ -149,9 +149,6 @@ Select region: )";
 
                     if (regionInput.length() > 0)
                     {
-                        PopulationRegion eRegion = REG_AFRICA;
-                        std::string sRegion = "";
-
                         std::string sCSV;
                         std::stringstream tempInputBuffer(regionInput);
                         std::string sLine;
@@ -173,48 +170,16 @@ Select region: )";
                                           << FONT_RESET;
                             }
 
-                            if (selectedRegion >= 1)
-                            {
-                                switch (selectedRegion - 1)
-                                {
-                                case 0:
-                                    eRegion = REG_AFRICA;
-                                    sRegion = "africa";
-                                    break;
-                                case 1:
-                                    eRegion = REG_AMERICA;
-                                    sRegion = "america";
-                                    break;
-                                case 2:
-                                    eRegion = REG_EAST_ASIA;
-                                    sRegion = "east_asia";
-                                    break;
-                                case 3:
-                                    eRegion = REG_EUROPE;
-                                    sRegion = "europe";
-                                    break;
-                                case 4:
-                                    eRegion = REG_SOUTH_ASIA;
-                                    sRegion = "south_asia";
-                                    break;
-                                default:
-                                    eRegion = REG_AFRICA;
-                                    sRegion = "africa";
-                                    std::cout << FONT_CYAN_BOLD_INVERSE << "\n\tInvalid choice. Region defaulted to Africa\n"
-                                              << FONT_RESET;
-                                }
-                            }
-                            std::pair<PopulationRegion, std::string> pairRegion(eRegion, sRegion);
+                            std::pair<PopulationRegion, std::string> pairRegion = getRegion(selectedRegion, -1);
                             MultipleRegionEntry.insert(pairRegion);
                         }
 
                         for (auto iterator : MultipleRegionEntry)
                         {
                             char caRatio[7];
-                            sprintf(caRatio, "%.4f", fRatioThreshold);
                             std::clog << FONT_CYAN_BOLD_INVERSE << caRatio << FONT_RESET << '\n';
 
-                            std::string sOutputPath = pResources + sGeneName + "/modified_" + iterator.second + "__" + caRatio + ".txt";
+                            std::string sOutputPath = pResources + sGeneName + "/modified" + iterator.second + "__" + caRatio + ".txt";
 
                             ChangeFileOptions *options = new ChangeFileOptions(iterator.first, fRatioThreshold, startOffset, endIndex);
 
