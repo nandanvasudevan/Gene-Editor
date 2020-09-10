@@ -2,7 +2,7 @@ CXX := g++
 INCLUDE := ./includes
 OUTPUT := ./output
 PROGRAM := geneEditor
-FLAGS := -g -Wpedantic -Wextra -Wall -std=gnu++17
+FLAGS := -g -Wpedantic -Wextra -Wall -Wattributes -Wno-ignored-attributes -std=gnu++17
 TIME := /usr/bin/time --format="\ttook %E %P\n"
 SRC:= ./
 

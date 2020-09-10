@@ -15,8 +15,6 @@
 #include <sstream>
 #include <algorithm>
 
-//TODO Verify changes made
-
 std::pair<PopulationRegion, std::string> getRegion(const int region, const int offset, const std::string &sPrefix)
 {
     std::pair<PopulationRegion, std::string> pairRet;
@@ -249,7 +247,7 @@ bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeD
     return true;
 }
 
-[[deprecated]] bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
+bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string sPath)
 {
     std::ifstream fAnnotationFile;
     fAnnotationFile.open(sPath);
@@ -374,5 +372,3 @@ void ModifyGene(vChangeDetail &vAnnotatedVector, std::string sInputPath, std::st
     fAnnotationFile.close();
     fModifiedFile.close();
 }
-
-// void

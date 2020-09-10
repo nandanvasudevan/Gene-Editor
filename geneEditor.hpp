@@ -156,7 +156,7 @@ typedef std::vector<sPopulationDetail> vPopulationDetail;
  * @return true Successful
  * @return false Invalid population data
  */
-[[nodiscard]] bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
+[[nodiscard]] [[gnu::const]] bool DeriveChangeFile(const vPopulationDetail &vPopData, vChangeDetail &vChangeData, const ChangeFileOptions &options);
 
 /**
  * @brief Create an annotation vector with information related to the changes to be made.
@@ -165,7 +165,7 @@ typedef std::vector<sPopulationDetail> vPopulationDetail;
  * @param sPath Path to file containing changes
  * @return true if import is successful, else false
  */
-[[nodiscard]] bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
+[[deprecated]] bool ImportChangeFile(vChangeDetail &vAnnotatedVector, std::string);
 
 /**
  * @brief Modify nucleotides in a gene based on passed data
